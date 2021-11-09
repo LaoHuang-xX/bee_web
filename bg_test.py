@@ -3,21 +3,25 @@ import pathlib as path
 import argparse
 import numpy as np
 
-cap = cv2.imread('bg_test_1.jpg')
+file_suffix = '.jpg'
+count = 0
 
 fgbg = cv2.createBackgroundSubtractorMOG2()
-kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
+kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
 
-while(1):
-    ret, frame = cv2.threshold(cap,127,255,cv2.THRESH_BINARY)
+while count < 3:
+    dir_file = str(count) + file_suffix
+    cap = cv2.imread(dir_file)
+    ret, frame = cv2.threshold(cap, 127, 255, cv2.THRESH_BINARY)
 
     fgmask = fgbg.apply(frame)
     fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, kernel)
 
     cv2.imshow('frame', fgmask)
-    k = cv2.waitKey(30) & 0xff
-    if k == 27:
-        break
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
+    count += 1
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
