@@ -4,10 +4,10 @@
       <div class="con img_win">
         <transition-group name="fade" tag="div">
           <div class="slider" v-for="i in [currentIndex]" :key="i">
-            <img  class="im" :src="currentImg" />
-            <img  class="im" :src="currentImg" />
-            <img  class="im" :src="currentImg" />
-            <img  class="im" :src="currentImg" />
+            <img  class="im" :src="currentImg1" />
+            <img  class="im" :src="currentImg2" />
+            <img  class="im" :src="currentImg3" />
+            <img  class="im" :src="currentImg4" />
           </div>
         </transition-group>
         <a class="prev" @click="prev" href="#">&#10094; Previous</a>
@@ -24,7 +24,8 @@ export default {
   name: 'Events',
   data() {
     return {
-      imgs: ["test_1.jpg", "test.jpg", "cornell.png"],
+      //imgs: ["2021-08-28_18-36-23_427832_side-3_1.jpg", "2021-08-28_18-36-23_499866_side-3_2","2021-08-28_18-36-23_568734_side-3_3","2021-08-28_18-36-23_634909_side-3_4","2021-08-28_18-36-23_706691_side-3_5","2021-08-28_18-36-23_751908_side-3_6","2021-08-28_18-36-23_799163_side-3_7","2021-08-28_18-36-23_863653_side-3_8",],
+      imgs: ["1.jpg", "2.jpg","3.jpg","4.jpg","5.jpg","6.jpg","7.jpg","8.jpg", "9.jpg","10.jpg","11.jpg","12.jpg"], 
       timer: null,
       currentIndex: 0
     };
@@ -37,18 +38,27 @@ export default {
   },
   methods: {
     next: function() {
-      this.currentIndex += 1;
+      this.currentIndex += 4;
     },
     prev : function() {
-      this.currentIndex -= 1;
+      this.currentIndex -= 4;
     },
     incr : function() {
-      this.currentIndex += 1;
+      this.currentIndex += 4;
     }
   },
   computed: {
-    currentImg: function() {
-      return require('../assets/img/' + this.imgs[Math.abs(this.currentIndex) % this.imgs.length]);
+    currentImg1: function() {
+      return require('../assets/img/' + this.imgs[Math.abs(this.currentIndex) % this.imgs.length]) ; //first image
+    },
+    currentImg2: function() {
+      return require('../assets/img/' + this.imgs[Math.abs(this.currentIndex) % this.imgs.length + 1]) ; //second image
+    },
+    currentImg3: function() {
+      return require('../assets/img/' + this.imgs[Math.abs(this.currentIndex) % this.imgs.length + 2]) ; //thire image
+    },
+    currentImg4: function() {
+      return require('../assets/img/' + this.imgs[Math.abs(this.currentIndex) % this.imgs.length + 3]) ; //forth image
     }
   }
 };
