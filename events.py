@@ -214,6 +214,20 @@ def determinEvent(names, num, determineE):
         determineE.append("Error")
 
 
+# Match same event for top and side views
+def event_match(es_list_a, es_list_b):
+    global match
+    for i in range(len(es_list_a)):
+        event_a_start_time = str(es_list_a[i][0].month) + str(es_list_a[i][0].day) + str(es_list_a[i][0].hour) + str(es_list_a[i][0].minute)
+        event_a_range = es_list_a[i][-1].minute * 60 + es_list_a[i][-1].second - es_list_a[i][0].minute * 60 - es_list_a[i][0].second
+        for j in range(len(es_list_b)):
+            event_b_start_time = str(es_list_b[j][0].month) + str(es_list_b[j][0].day) + str(es_list_b[j][0].hour) + str(es_list_b[j][0].minute)
+            if event_a_start_time == event_b_start_time:
+                event_b_range = es_list_b[j][-1].minute * 60 + es_list_b[j][-1].second - es_list_b[j][0].minute * 60 - es_list_b[j][0].second
+                if abs(event_a_range - event_b_range) < 3:
+                    match[i] = j
+
+
 dir = 'run_top-3___2021-08-28_12-00-37'
 r3 = get_events(dir)
 e_names = []
