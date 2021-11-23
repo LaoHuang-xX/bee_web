@@ -14,6 +14,7 @@ import sys
 import os
 from matplotlib import pyplot as plt
 import bee_event as bee  # be sure to include bee_event.py in the same dir
+from sys import platform
 
 # Time difference for grouping images
 DELTA_T_SEC = 5
@@ -266,8 +267,15 @@ for obj in obj_list:
     res_list.append("<p class='event_num'>Event " + str(obj.eventID + 1) + "</p>")
 
     res_list.append("<div class='area_block'>")
-    res_list.append("<p class='event_des'>Date: " + str(obj.get_top_dir().split('/')[1].split('_')[0]) + "</p>")
-    res_list.append("<p class='event_des'>Time: " + str(obj.get_top_dir().split('/')[1].split('_')[1]) + "</p>")
+    # Deal with different OS
+    # Windows
+    if platform == "win32":
+        res_list.append("<p class='event_des'>Date: " + str(obj.get_top_dir().split('\\')[1].split('_')[0]) + "</p>")
+        res_list.append("<p class='event_des'>Time: " + str(obj.get_top_dir().split('\\')[1].split('_')[1]) + "</p>")
+    # Linux / Mac
+    else:
+        res_list.append("<p class='event_des'>Date: " + str(obj.get_top_dir().split('/')[1].split('_')[0]) + "</p>")
+        res_list.append("<p class='event_des'>Time: " + str(obj.get_top_dir().split('/')[1].split('_')[1]) + "</p>")
     res_list.append("</div>")
 
     res_list.append("<div class='area_block'>")
