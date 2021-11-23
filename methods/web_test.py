@@ -246,17 +246,38 @@ for key in match:
     getImage(es_list[key][mid_1], dir_1, es_list_2[value][mid_2], dir_2)
 
 
+print(match)
+keys = list(match.keys())
+values = list(match.values())
+print(es_list)
+print(keys)
+print(final_match)
 # for bee_project
-
 res_list = []
 i = 0
 
-for key in final_match.keys():
-    res_list.append("<p>" + str(key) + "</p>")
-    res_list.append("<img src=" + str(key) + ">" )    # top image
 
-    res_list.append("<p>" + str(final_match[key]) + "</p>")
-    res_list.append("<img src=" + str(final_match[key]) + "><br><br><br><br><br><br><br>")   # sid image
+for key in final_match:
+    res_list.append("<div class='event'>")
+    res_list.append("<p class='event_num'>Event " + str(i + 1) + "</p>")
+
+    res_list.append("<div class='area_block'>")
+    res_list.append("<p class='event_des'>Date: " + str(key.split('/')[1].split('_')[0]) + "</p>")
+    res_list.append("<p class='event_des'>Time: " + str(key.split('/')[1].split('_')[1]) + "</p>")
+    res_list.append("</div>")
+
+    res_list.append("<div class='area_block'>")
+    res_list.append("<p class='view_dir'>Side View</p>")
+    res_list.append("<img src=" + str(final_match[key]) + " class='img' height='200' width='300'>")   # sid image
+    res_list.append("</div>")
+
+    res_list.append("<div class='area_block'>")
+    res_list.append("<p class='view_dir'>Top View</p>")
+    res_list.append("<img src=" + str(key) + " class='img' height='200' width='300'>")    # top image
+    res_list.append("</div>")
+
+    res_list.append("</div>")
+    i += 1
 
     # top_path = os.path.join("./run_top-3___2021-08-28_12-00-37", str((top)))
     # side_path = os.path.join("./run_side-3___2021-08-28_12-00-48", str(match[top]))
@@ -296,26 +317,68 @@ message = """
           height: 0;
           visibility: hidden;
         }
-      .wrap {
-        /*  */
-            border: 1px solid;
-            width: 1600px;
+        .area_block {
+            float: left;
+            margin: 20px;
+        }
+        .view_dir {
+            font-size: 18px;
+            font-weight: 600;
+            color: black;
+        }
+        .event_des {
+            font-size: 16px;
+            font-weight: 500;
+            color: black;
+            float: left;
+            margin: 0 20px 0;
+        }
+        .event {
+            margin-bottom: 50px;
+            height: 300px;
+        }
+        .wrap {
+            padding: 20px;
+            border-radius: 25px;
+            width: 1200px;
             text-align: center; 
             margin: 0 auto;
+            background: rgb(241, 239, 239);
+            box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
         }
-        .wrap span{
-            display: inline-block;
-            vertical-align: middle;
-            padding: 20px 0; /*  */
+        #header {
+            background-color:rgb(160, 39, 39);
+            color:white;
+            text-align:center;
+            padding:5px;
+            border: none;
+            box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+            margin-bottom: 90px;
         }
-        .wrap img{
-            width: auto;
-            height: auto;
-            vertical-align: middle;
+        body {
+            background: rgb(207, 204, 204);
+            margin: 0;
+        }
+        .event_num {
+            font-size: 28px;
+            font-weight: 900;
+            color: black;
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        #footer {
+            background-color:rgb(160, 39, 39);
+            color:white;
+            clear:both;
+            text-align:center;
+            padding:5px;	 	 
         }
     </style>
 </head>
-<body>    
+<body>
+    <div id="header">
+    <h1>Custom Bee Tracking System</h1>
+    </div>    
     <div class="wrap">
         %s
     </div>
