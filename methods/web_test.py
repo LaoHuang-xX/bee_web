@@ -252,7 +252,10 @@ for key in match:
 obj_list = []
 idx = 0
 for key in final_match:
-    time_stamp = str(final_match[key].split('/')[1].split('_')[0]) + '_' + str(final_match[key].split('/')[1].split('_')[1])  # windows uses '\\', mac uses '/'
+    if platform == "win32":
+        time_stamp = str(final_match[key].split('\\')[1].split('_')[0]) + '_' + str(final_match[key].split('\\')[1].split('_')[1])  # windows uses '\\', mac uses '/'
+    else:
+        time_stamp = str(final_match[key].split('/')[1].split('_')[0]) + '_' + str(final_match[key].split('/')[1].split('_')[1])  # windows uses '\\', mac uses '/'
     obj_list.append(bee.bee_event(idx, time_stamp, -1))
     obj_list[idx].add_top_image(key)
     obj_list[idx].add_side_image(final_match[key])
@@ -290,18 +293,6 @@ for obj in obj_list:
 
     res_list.append("</div>")
     i += 1
-
-    # top_path = os.path.join("./run_top-3___2021-08-28_12-00-37", str((top)))
-    # side_path = os.path.join("./run_side-3___2021-08-28_12-00-48", str(match[top]))
-    # print(key)
-    # if i % 2 == 0:
-    #     res_list.append("<p>" + str(key) + "</p>")
-    #     res_list.append("<img src=" + str(key) + "><br><br><br><br><br>" )    # top image
-
-    # else:
-    #     res_list.append("<p>" + str(final_match[key]) + "</p>")
-    #     res_list.append("<img src=" + str(final_match[key]) + ">")   # sid image
-    # i+=1
 
 
 img_str = ""
