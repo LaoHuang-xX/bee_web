@@ -1,6 +1,6 @@
 # coding:utf-8
 '''
-Nils Napp, Xu Hai Mar 2021
+Nils Napp, Yitong Sun, Xu Hai Nov 2021
 Script to group and count the entry/exit events form beetunnel filenames
 '''
 
@@ -13,6 +13,7 @@ import webbrowser
 import sys
 import os
 from matplotlib import pyplot as plt
+import bee_event as bee  # be sure to include bee_event.py in the same dir
 
 # Time difference for grouping images
 DELTA_T_SEC = 5
@@ -246,34 +247,37 @@ for key in match:
     getImage(es_list[key][mid_1], dir_1, es_list_2[value][mid_2], dir_2)
 
 
-print(match)
-keys = list(match.keys())
-values = list(match.values())
-print(es_list)
-print(keys)
-print(final_match)
+# build an object list
+obj_list = []
+idx = 0
+for key in final_match:
+    time_stamp = str(final_match[key].split('/')[1].split('_')[0]) + '_' + str(final_match[key].split('/')[1].split('_')[1])  # windows uses '\\', mac uses '/'
+    obj_list.append(bee.bee_event(idx, time_stamp, -1))
+    obj_list[idx].add_top_image(key)
+    obj_list[idx].add_side_image(final_match[key])
+    idx += 1
+
 # for bee_project
 res_list = []
 i = 0
 
-
-for key in final_match:
+for obj in obj_list:
     res_list.append("<div class='event'>")
-    res_list.append("<p class='event_num'>Event " + str(i + 1) + "</p>")
+    res_list.append("<p class='event_num'>Event " + str(obj.eventID + 1) + "</p>")
 
     res_list.append("<div class='area_block'>")
-    res_list.append("<p class='event_des'>Date: " + str(key.split('/')[1].split('_')[0]) + "</p>")
-    res_list.append("<p class='event_des'>Time: " + str(key.split('/')[1].split('_')[1]) + "</p>")
+    res_list.append("<p class='event_des'>Date: " + str(obj.get_top_dir().split('/')[1].split('_')[0]) + "</p>")
+    res_list.append("<p class='event_des'>Time: " + str(obj.get_top_dir().split('/')[1].split('_')[1]) + "</p>")
     res_list.append("</div>")
 
     res_list.append("<div class='area_block'>")
     res_list.append("<p class='view_dir'>Side View</p>")
-    res_list.append("<img src=" + str(final_match[key]) + " class='img' height='200' width='300'>")   # sid image
+    res_list.append("<img src=" + str(obj.get_side_dir()) + " class='img' height='200' width='300'>")   # sid image
     res_list.append("</div>")
 
     res_list.append("<div class='area_block'>")
     res_list.append("<p class='view_dir'>Top View</p>")
-    res_list.append("<img src=" + str(key) + " class='img' height='200' width='300'>")    # top image
+    res_list.append("<img src=" + str(obj.get_top_dir()) + " class='img' height='200' width='300'>")    # top image
     res_list.append("</div>")
 
     res_list.append("</div>")
@@ -285,7 +289,7 @@ for key in final_match:
     # if i % 2 == 0:
     #     res_list.append("<p>" + str(key) + "</p>")
     #     res_list.append("<img src=" + str(key) + "><br><br><br><br><br>" )    # top image
-        
+
     # else:
     #     res_list.append("<p>" + str(final_match[key]) + "</p>")
     #     res_list.append("<img src=" + str(final_match[key]) + ">")   # sid image
@@ -304,7 +308,7 @@ f = open(GEN_HTML, 'w', encoding="utf-8")
 message = """
 <!DOCTYPE html>
 <html>
-<head>    
+<head>
     <link rel="stylesheet" type="text/css" href="task001.css">
     <meta charset="utf-8">
     <title>test</title>
@@ -341,7 +345,7 @@ message = """
             padding: 20px;
             border-radius: 25px;
             width: 1200px;
-            text-align: center; 
+            text-align: center;
             margin: 0 auto;
             background: rgb(241, 239, 239);
             box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
@@ -371,14 +375,14 @@ message = """
             color:white;
             clear:both;
             text-align:center;
-            padding:5px;	 	 
+            padding:5px;
         }
     </style>
 </head>
 <body>
     <div id="header">
     <h1>Custom Bee Tracking System</h1>
-    </div>    
+    </div>
     <div class="wrap">
         %s
     </div>
@@ -393,7 +397,7 @@ f.close()
 # run web broswer
 webbrowser.open(GEN_HTML, new=1)
 '''
-webbrowser.open(url, new=0, autoraise=True) 
+webbrowser.open(url, new=0, autoraise=True)
 Display url using the default browser. If new is 0, the url is opened in the same browser window if possible. If new is 1, a new browser window is opened if possible. If new is 2, a new browser page (“tab”) is opened if possible. If autoraise is True, the window is raised if possible (note that under many window managers this will occur regardless of the setting of this variable).
 '''
 
