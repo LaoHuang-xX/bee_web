@@ -314,6 +314,14 @@ for n in range(len(top_indexes)):
             side_events.append(getImage(e, aim_file_side))
 
         res_list = []
+        # Previous button
+        if count > 0:
+            res_list.append("<a href='file:test_result" + str(count ) )
+            res_list.append(".html' class='previous'> &laquo Previous </a>")
+        # Next button
+        if count < len(side_indexes) - 1:
+            res_list.append("<a href='file:test_result" + str(count + 2) )
+            res_list.append(".html' class='next'>Next &raquo;</a>")
 
         # Record the title of each event
         res_list.append("<div class='event'>")
@@ -472,6 +480,23 @@ for n in range(len(top_indexes)):
                     text-align:center;
                     padding:5px;
                 }
+                a {
+                text-decoration: none;
+                display: inline-block;
+                padding: 8px 16px;
+                }
+                a:hover {
+                background-color: #ddd;
+                color: black;
+                }
+                .previous {
+                background-color: #f1f1f1;
+                color: black;
+                }
+                .next {
+                background-color: #04AA6D;
+                color: white;
+                }
             </style>
         </head>
         <body>
@@ -490,11 +515,13 @@ for n in range(len(top_indexes)):
         f.close()
 
         # run web broswer
-        webbrowser.open(GEN_HTML, new=1)
+        #webbrowser.open(GEN_HTML, new=1)
         '''
         webbrowser.open(url, new=0, autoraise=True)
         Display url using the default browser. If new is 0, the url is opened in the same browser window if possible. If new is 1, a new browser window is opened if possible. If new is 2, a new browser page (“tab”) is opened if possible. If autoraise is True, the window is raised if possible (note that under many window managers this will occur regardless of the setting of this variable).
         '''
+webbrowser.open_new_tab('file:' + os.path.realpath('test_result' + str(count) + '.html'))
+
 
 while 1:
     delete_or_not = input("Do you want to remove generated HTML files? (y/n): ")
