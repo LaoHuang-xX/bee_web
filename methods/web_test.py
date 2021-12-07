@@ -16,6 +16,7 @@ from matplotlib import pyplot as plt
 import bee_event as bee  # be sure to include bee_event.py in the same dir
 from sys import platform
 import re
+import pickle
 
 # Time difference for grouping images
 DELTA_T_SEC = 2
@@ -287,6 +288,8 @@ nums_2 = r3_side.get('event_cnt')
 top_indexes, side_indexes = event_match(es_list, es_list_2)
 
 count = 0
+names = []
+pickle_file = {}
 
 for n in range(len(top_indexes)):
     if n < len(side_indexes):
@@ -314,9 +317,19 @@ for n in range(len(top_indexes)):
             side_events.append(getImage(e, aim_file_side))
 
         res_list = []
+
+        if platform == "win32":
+            names.append(str(top_events[0].split('\\')[1].split('_')[0]) + '-' +
+                       str(top_events[0].split('\\')[1].split('_')[1]) + '.html')
+        else:
+            names.append(str(top_events[0].split('/')[1].split('_')[0]) + '-' +
+                       str(top_events[0].split('/')[1].split('_')[1]) + '.html')
+
+        pickle_file[names[-1][:-5]] = names[-1]
+
         # Previous button
         if count > 0:
-            res_list.append("<a href='file:test_result" + str(count ) )
+            res_list.append("<a href='file:test_result" + names[-2] )
             res_list.append(".html' class='previous'> &laquo Previous </a>")
         # Next button
         if count < len(side_indexes) - 1:
@@ -396,7 +409,11 @@ for n in range(len(top_indexes)):
             img_str += tags
 
         # html generated
-        GEN_HTML = "test_result" + str(count) + ".html"
+        if platform == "win32":
+            GEN_HTML = names[-1]
+        else:
+            GEN_HTML = names[-1]
+
         # open html
         f = open(GEN_HTML, 'w', encoding="utf-8")
 
@@ -520,14 +537,21 @@ for n in range(len(top_indexes)):
         webbrowser.open(url, new=0, autoraise=True)
         Display url using the default browser. If new is 0, the url is opened in the same browser window if possible. If new is 1, a new browser window is opened if possible. If new is 2, a new browser page (“tab”) is opened if possible. If autoraise is True, the window is raised if possible (note that under many window managers this will occur regardless of the setting of this variable).
         '''
-webbrowser.open_new_tab('file:' + os.path.realpath('test_result' + str(count) + '.html'))
+webbrowser.open_new_tab('file:' + os.path.realpath(names[-1]))
 
+names.append(in_date_parts[0] + '-' + in_date_parts[1] + '-' + in_date_parts[2] + '_'
+             + in_time_parts[0] + '-' + in_time_parts[1])
+
+file_name = names[-1]
+outfile = open(file_name, 'wb')
+pickle.dump(pickle_file, outfile)
+outfile.close()
 
 while 1:
     delete_or_not = input("Do you want to remove generated HTML files? (y/n): ")
     if delete_or_not.lower() == 'y' or delete_or_not.lower() == 'yes':
-        for i in range(1, count + 1):
-            os.remove('test_result' + str(i) + '.html')
+        for i in range(len(names)):
+            os.remove(names[i])
         break
     elif delete_or_not.lower() == 'n' or delete_or_not.lower() == 'no':
         break
