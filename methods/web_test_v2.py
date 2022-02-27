@@ -17,6 +17,8 @@ import bee_event as bee  # be sure to include bee_event.py in the same dir
 from sys import platform
 import re
 import pickle
+import math
+import xlsxwriter
 
 # Time difference for grouping images
 DELTA_T_SEC = 2
@@ -40,7 +42,6 @@ def delta_dt_sec(dt1, dt2):
 def get_events(DIR_REL):
     p = path.Path(DIR_REL)
     dtimes = [dt.datetime.strptime(tstr(f.name), FMT_STR) for f in p.glob('*.jpg')]
-
     dtimes.sort()
     if len(dtimes) <= 2:
         return None
@@ -188,31 +189,51 @@ while 1:
 
 in_date_parts = in_date.split('-')
 in_time_parts = in_time.split('-')
-files = os.listdir('data/')
+#files = os.listdir('data/')
+top_files = os.listdir('/Volumes/BEE_DATA/run_top-4___2021-09-26_18-00-44/')
+side_files = os.listdir('/Volumes/BEE_DATA/run_side-4___2021-09-26_18-00-51/')
 
 latest_time_top = 0
 latest_time_side = 0
 
-for f in files:
+for f in top_files:
     parts = f.split('_')
-    if len(parts) == 6:
-        tmp_month = parts[4].split('-')[1]
-        tmp_day = int(parts[4].split('-')[2])
-        tmp_hour = int(parts[5].split('-')[0])
-        tmp_minute = int(parts[5].split('-')[1])
-        tmp_second = int(parts[5].split('-')[2])
+    if len(parts) == 2:
+        tmp_month = parts[0].split('-')[1]
+        tmp_day = parts[0].split('-')[2]
+        tmp_hour = int(parts[1].split('-')[0])
+        tmp_minute = int(parts[1].split('-')[1])
+        tmp_second = int(parts[1].split('-')[2])
 
-    if tmp_month == in_date_parts[1]:
-        # The range cover 5 days earlier than the required date
-        if int(in_date_parts[2]) <= tmp_day < int(in_date_parts[2]) + 2:
-            if parts[1].split('-')[0] == 'side':
-                if latest_time_side < tmp_hour * 60 * 60 + tmp_minute * 60 + tmp_second:
-                    latest_time_side = tmp_hour * 60 * 60 + tmp_minute * 60 + tmp_second
-                    aim_file_side = f
-            if parts[1].split('-')[0] == 'top':
-                if latest_time_top < tmp_hour * 60 * 60 + tmp_minute * 60 + tmp_second:
+        if tmp_month == in_date_parts[1]:
+            if in_date_parts[2] == tmp_day:
+                if int(in_time_parts[0]) * 60 * 60 + int(in_time_parts[1]) * 60 + int(in_time_parts[2]) >= \
+                        tmp_hour * 60 * 60 + tmp_minute * 60 + tmp_second > latest_time_top:
                     latest_time_top = tmp_hour * 60 * 60 + tmp_minute * 60 + tmp_second
                     aim_file_top = f
+
+for f in side_files:
+    parts = f.split('_')
+    if len(parts) == 2:
+        tmp_month = parts[0].split('-')[1]
+        tmp_day = parts[0].split('-')[2]
+        tmp_hour = int(parts[1].split('-')[0])
+        tmp_minute = int(parts[1].split('-')[1])
+        tmp_second = int(parts[1].split('-')[2])
+
+        if tmp_month == in_date_parts[1]:
+            if in_date_parts[2] == tmp_day:
+                if int(in_time_parts[0]) * 60 * 60 + int(in_time_parts[1]) * 60 + int(in_time_parts[2]) >= \
+                        tmp_hour * 60 * 60 + tmp_minute * 60 + tmp_second > latest_time_side:
+                    latest_time_side = tmp_hour * 60 * 60 + tmp_minute * 60 + tmp_second
+                    aim_file_side = f
+
+try:
+    aim_file_top = '/Volumes/BEE_DATA/run_top-4___2021-09-26_18-00-44/' + str(aim_file_top) + '/'
+    aim_file_side = '/Volumes/BEE_DATA/run_side-4___2021-09-26_18-00-51/' + str(aim_file_side) + '/'
+except NameError:
+    print('No data can be found with input date and time.')
+    quit()
 
 r3 = get_events(aim_file_top)
 r3_side = get_events(aim_file_side)
@@ -257,45 +278,47 @@ for n in events_matched:
     res_list = []
 
     if platform == "win32":
-        names.append(str(top_events[0].split('\\')[1].split('_')[0]) + '-' +
-                     str(top_events[0].split('\\')[1].split('_')[1]) + '.html')
+        names.append(str(top_events[0].split('\\')[5].split('_')[0]) + '-' +
+                     str(top_events[0].split('\\')[5].split('_')[1]) + '.html')
     else:
-        names.append(str(top_events[0].split('/')[1].split('_')[0]) + '-' +
-                     str(top_events[0].split('/')[1].split('_')[1]) + '.html')
+        names.append(str(top_events[0].split('/')[5].split('_')[0]) + '-' +
+                     str(top_events[0].split('/')[5].split('_')[1]) + '.html')
 
     top_values = []
     side_values = []
 
     for image in top_events:
-        top_values.append(image)
+        top_values.append(image[17:])
     for image in side_events:
-        side_values.append(image)
+        side_values.append(image[17:])
     pickle_file_top[names[-1][:-5]] = top_values
     pickle_file_side[names[-1][:-5]] = side_values
 
     # Previous button
     if count > 0:
-        res_list.append("<a href='file:" + names[count - 1])
+        res_list.append("<a href='file:" + str(count) + ".html")
         res_list.append("' class='previous'> &laquo Previous </a>")
-    # # Next button
-    # if count < len(events_matched) - 1:
-    #     res_list.append("<a href='file:test_result" + names[count + 1])
-    #     res_list.append("class='next'>Next &raquo;</a>")
+    # Next button
+    if count < len(events_matched) - 1:
+        res_list.append("<a href='file:" + str(count + 2) + ".html")
+        res_list.append("' class='next'>Next &raquo;</a>")
 
     # Record the title of each event
     res_list.append("<div class='event'>")
-    res_list.append("<p class='event_num'>Event " + str(count + 1) + "</p>")
+    res_list.append("<p class='event_num'>Event " + names[count][: -5] + "</p>")
+
+    count += 1
 
     res_list.append("<div class='area_block'>")
     # Deal with different OS
     # Windows
     if platform == "win32":
-        res_list.append("<p class='event_des'>Date: " + str(top_events[0].split('\\')[1].split('_')[0]) + "</p>")
-        res_list.append("<p class='event_des'>Time: " + str(top_events[0].split('\\')[1].split('_')[1]) + "</p>")
+        res_list.append("<p class='event_des'>Date: " + str(top_events[0].split('\\')[5].split('_')[0]) + "</p>")
+        res_list.append("<p class='event_des'>Time: " + str(top_events[0].split('\\')[5].split('_')[1]) + "</p>")
     # Linux / Mac
     else:
-        res_list.append("<p class='event_des'>Date: " + str(top_events[0].split('/')[1].split('_')[0]) + "</p>")
-        res_list.append("<p class='event_des'>Time: " + str(top_events[0].split('/')[1].split('_')[1]) + "</p>")
+        res_list.append("<p class='event_des'>Date: " + str(top_events[0].split('/')[5].split('_')[0]) + "</p>")
+        res_list.append("<p class='event_des'>Time: " + str(top_events[0].split('/')[5].split('_')[1]) + "</p>")
     res_list.append("</div>")
 
     res_list.append("<div class='area_block'>")
@@ -309,7 +332,6 @@ for n in events_matched:
     res_list.append("</div>")
 
     res_list.append("</div>")
-    count += 1
 
     # Record all images of the side view
     res_list.append("<div class='event_view'>")
@@ -355,9 +377,9 @@ for n in events_matched:
 
     # html generated
     if platform == "win32":
-        GEN_HTML = names[-1]
+        GEN_HTML = str(count) + ".html" #names[-1]
     else:
-        GEN_HTML = names[-1]
+        GEN_HTML = str(count) + ".html" #names[-1]
 
     # open html
     f = open(GEN_HTML, 'w', encoding="utf-8")
@@ -481,16 +503,7 @@ for n in events_matched:
     webbrowser.open(url, new=0, autoraise=True)
     Display url using the default browser. If new is 0, the url is opened in the same browser window if possible. If new is 1, a new browser window is opened if possible. If new is 2, a new browser page (“tab”) is opened if possible. If autoraise is True, the window is raised if possible (note that under many window managers this will occur regardless of the setting of this variable).
     '''
-webbrowser.open_new_tab('file:' + os.path.realpath(names[-1]))
-
-file_name = names[-1]
-outfile_top = open(file_name + "_top", 'wb')
-pickle.dump(pickle_file_top, outfile_top)
-outfile_top.close()
-
-outfile_side = open(file_name + "_side", 'wb')
-pickle.dump(pickle_file_side, outfile_side)
-outfile_side.close()
+webbrowser.open_new_tab('file:' + os.path.realpath(str(count) + ".html"))
 
 cnt = 0
 for i in events_matched:
@@ -505,8 +518,49 @@ for i in events_matched:
 while 1:
     delete_or_not = input("Do you want to remove generated HTML files? (y/n): ")
     if delete_or_not.lower() == 'y' or delete_or_not.lower() == 'yes':
-        for i in range(len(names)):
-            os.remove(names[i])
-        break
+        for i in range(1, count):
+            os.remove(str(i) + '.html')
+        quit()
     elif delete_or_not.lower() == 'n' or delete_or_not.lower() == 'no':
         break
+
+file_name = names[-1]
+outfile_top = open(file_name + "_top", 'wb')
+pickle.dump(pickle_file_top, outfile_top)
+outfile_top.close()
+
+outfile_side = open(file_name + "_side", 'wb')
+pickle.dump(pickle_file_side, outfile_side)
+outfile_side.close()
+
+# Workbook() takes one, non-optional, argument
+# which is the filename that we want to create.
+workbook = xlsxwriter.Workbook(file_name + '.xlsx')
+
+# The workbook object is then used to add new
+# worksheet via the add_worksheet() method.
+worksheet = workbook.add_worksheet()
+
+# Use the worksheet object to write
+# data via the write() method.
+worksheet.write('A1', 'Event')
+worksheet.write('C1', 'Bee ID')
+worksheet.write('D1', 'Pollen')
+worksheet.write('E1', 'Top')
+worksheet.write('P1', 'Side')
+
+cnt = 2
+
+# Match corresponding top view and side view images
+# And merge them into vertical format
+for i in pickle_file_top:
+    min_len = min(len(pickle_file_side[i]), len(pickle_file_top[i]))
+    worksheet.write_url('A' + str(cnt), r'./' + str(cnt - 1) + '.html', string=i)
+    for j in range(min_len):
+        worksheet.write('E' + str(cnt), pickle_file_top[i][j])
+        worksheet.write('P' + str(cnt), pickle_file_side[i][j])
+        cnt += 1
+
+# Finally, close the Excel file
+# via the close() method.
+workbook.close()
