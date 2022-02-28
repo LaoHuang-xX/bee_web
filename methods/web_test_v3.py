@@ -560,8 +560,6 @@ for i in range(65, 142):#sh.max_row + 1):
     #     print(es_list_2[events_matched[j]])
 
     file_name = names[-1]
-    deleted_names.append(file_name + "_top")
-    deleted_names.append(file_name + "_side")
     outfile_top = open(file_name + "_top", 'wb')
     pickle.dump(pickle_file_top, outfile_top)
     outfile_top.close()
