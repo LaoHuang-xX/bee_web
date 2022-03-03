@@ -205,6 +205,8 @@ pollen_sheet.write('A1', 'Sample')
 pollen_sheet.write('B1', 'Time')
 pollen_sheet.write('C1', 'Bee ID')
 
+final_pickle_file = {}
+
 for i in range(65, 142):#sh.max_row + 1):
     pre_date = str(sh.cell(row=i, column=1).value)
     pre_time = str(sh.cell(row=i, column=2).value)
@@ -241,6 +243,8 @@ for i in range(65, 142):#sh.max_row + 1):
 
     latest_time_top = 0
     latest_time_side = 0
+
+    pre_count = count
 
     for f in top_files:
         parts = f.split('_')
@@ -295,7 +299,10 @@ for i in range(65, 142):#sh.max_row + 1):
     pickle_file_top = {}
     pickle_file_side = {}
 
+    len_count = 0
+
     for n in events_matched:
+        pickle_file = {}
         top_index = n
         side_index = events_matched[n]
 
@@ -321,12 +328,19 @@ for i in range(65, 142):#sh.max_row + 1):
 
         res_list = []
 
+        names_flag = 0
+
         if platform == "win32":
             names.append(str(top_events[0].split('\\')[5].split('_')[0]) + '-' +
                          str(top_events[0].split('\\')[5].split('_')[1]) + '.html')
+            names_flag = 1
         else:
             names.append(str(top_events[0].split('/')[5].split('_')[0]) + '-' +
                          str(top_events[0].split('/')[5].split('_')[1]) + '.html')
+            names_flag = 1
+
+        if names_flag == 0:
+            continue
 
         top_values = []
         side_values = []
@@ -335,18 +349,27 @@ for i in range(65, 142):#sh.max_row + 1):
             top_values.append(image[17:])
         for image in side_events:
             side_values.append(image[17:])
-        pickle_file_top[names[-1][:-5]] = top_values
-        pickle_file_side[names[-1][:-5]] = side_values
+        # pickle_file_top[names[-1][:-5]] = top_values
+        # pickle_file_side[names[-1][:-5]] = side_values
+        pickle_file_top[names[count][:-5]] = top_values
+        pickle_file_side[names[count][:-5]] = side_values
+
+        pickle_file["top"] = top_values
+        pickle_file["side"] = side_values
+
+        final_pickle_file[names[count][:-5]] = pickle_file
+        # final_pickle_file[names[-1][:-5]] = pickle_file
 
         # Previous button
         if count > 0:
             res_list.append("<a href='file:" + str(count) + ".html")
             res_list.append("' class='previous'> &laquo Previous </a>")
         # Next button
-        if i != sh.max_row and count < len(events_matched) - 1:
+        if i != 141 or len_count < len(events_matched) - 1:
             res_list.append("<a href='file:" + str(count + 2) + ".html")
             res_list.append("' class='next'>Next &raquo;</a>")
 
+        len_count += 1
         # Record the title of each event
         res_list.append("<div class='event'>")
         res_list.append("<p class='event_num'>Event " + names[count][: -5] + "</p>")
@@ -590,11 +613,12 @@ for i in range(65, 142):#sh.max_row + 1):
     # And merge them into vertical format
     for a in pickle_file_top:
         min_len = min(len(pickle_file_side[a]), len(pickle_file_top[a]))
-        worksheet.write_url('A' + str(cnt), r'./' + str(cnt - 1) + '.html', string=a)
+        worksheet.write_url('A' + str(cnt), r'./' + str(pre_count + 1) + '.html', string=a)
         for j in range(min_len):
             worksheet.write('E' + str(cnt), pickle_file_top[a][j])
             worksheet.write('P' + str(cnt), pickle_file_side[a][j])
             cnt += 1
+        pre_count += 1
 
     # Finally, close the Excel file
     # via the close() method.
@@ -604,6 +628,10 @@ for i in range(65, 142):#sh.max_row + 1):
     pollen_sheet.write('B' + str(i - 64), pre_time)
     pollen_sheet.write('C' + str(i - 64), bee_id)
 pollen_backup.close()
+
+outfile_a = open("all_events", 'wb')
+pickle.dump(final_pickle_file, outfile_a)
+outfile_a.close()
 
 while 1:
     delete_or_not = input("Do you want to remove generated HTML files? (y/n): ")
