@@ -37,13 +37,8 @@ def tstr(fname):
 
 
 def delta_dt_sec(dt1, dt2):
-    # time_dt1 = dt1.day * 24 * 60 * 60 + dt1.hour * 60 * 60 + dt1.minute * 60 + dt1.second + dt1.microsecond / 1000
-    # time_dt2 = dt2.day * 24 * 60 * 60 + dt2.hour * 60 * 60 + dt2.minute * 60 + dt2.second + dt2.microsecond / 1000
-    #
-    # return time_dt2 - time_dt1
     delta = dt2 - dt1
     return delta.days * 24 * 60 * 60 + delta.seconds + delta.microseconds / 1000000
-    #return delta.days * 24 * 60 * 60 + delta.hour * 60 * 60 + delta.minutes * 60 + delta.seconds + delta.microseconds / 1000000
 
 
 def get_events(DIR_REL):
@@ -152,18 +147,12 @@ def getImage(d, f_dir_d):
 # Match same event for top and side views
 def event_match(es_list_a, es_list_b):
     event_matched = {}
-    # visited = []
-    # event_start_time = str(int(in_date_parts[1])) + str(int(in_date_parts[2])) + str(int(in_time_parts[0]))
     for i in range(len(es_list_a)):
-        # event_start_time = str(es_list_a[i][0].day) + str(es_list_a[i][0].hour) + str(es_list_a[i][0].minute)
         event_start_time = str(es_list_a[i][0].day) + str(es_list_a[i][0].hour)
         for j in range(len(es_list_b)):
             event_b_start_time = str(es_list_b[j][0].day) + str(es_list_b[j][0].hour)
             if event_b_start_time == event_start_time:
-                # TODO: Determine the value here
-                #
-                # if 3 <= abs(es_list_a[i][0].second - es_list_b[j][0].second) <= 4:  # and j not in visited:
-                if 3 <= abs(es_list_a[i][0].minute * 60 + es_list_a[i][0].second - es_list_b[j][0].minute * 60 - es_list_b[j][0].second) <= 4:
+                if 3 <= abs(es_list_a[i][0].minute * 60 + es_list_a[i][0].second - es_list_b[j][0].minute * 60 - es_list_b[j][0].second) <= 6:
                     event_matched[i] = j
 
     return event_matched
@@ -171,29 +160,6 @@ def event_match(es_list_a, es_list_b):
 
 pattern_date = re.compile(r'(\d{4}-\d{2}-\d{2})')
 pattern_time = re.compile(r'(\d{2}-\d{2}-\d{2})')
-
-# Let the user input date and time
-# And make sure the format is correct
-# count = 0
-# while 1:
-#     in_date = input("Please input a date you want to query (follow the format 'yyyy-mm-dd'): ")
-#     if re.match(pattern_date, in_date):
-#         break
-#     count += 1
-#     if count == 5:
-#         print('Too many errors, program stops.')
-#         quit()
-#
-# count = 0
-#
-# while 1:
-#     in_time = input("Please input the time you want to query (follow the format 'hh-mm-ss'): ")
-#     if re.match(pattern_time, in_time):
-#         break
-#     count += 1
-#     if count == 5:
-#         print('Too many errors, program stops.')
-#         quit()
 
 wrkbk = openpyxl.load_workbook("Pollen_Project_new.xlsx")
 sh = wrkbk.active
@@ -285,9 +251,6 @@ for i in range(65, sh.max_row + 1):
                         latest_time_side = tmp_hour * 60 * 60 + tmp_minute * 60 + tmp_second
                         pre_aim_file_side = f
 
-    # if in_date_parts[2] == "30" and in_time_parts[0] == "14" and in_time_parts[1] == "48":
-    #     print(str(pre_aim_file_top))
-
     try:
         aim_file_top = '/Volumes/BEE_DATA/run_top-4___2021-09-26_18-00-44/' + str(pre_aim_file_top) + '/'
         aim_file_side = '/Volumes/BEE_DATA/run_side-4___2021-09-26_18-00-51/' + str(pre_aim_file_side) + '/'
@@ -303,9 +266,6 @@ for i in range(65, sh.max_row + 1):
 
     es_list_2 = r3_side.get('events_list')
     nums_2 = r3_side.get('event_cnt')
-    #
-    # if in_date_parts[2] == "30" and in_time_parts[0] == "14" and in_time_parts[1] == "48":
-    #     print(es_list)
 
     events_matched = event_match(es_list, es_list_2)
 
@@ -593,14 +553,6 @@ for i in range(65, sh.max_row + 1):
     #webbrowser.open_new_tab('file:' + os.path.realpath(str(count) + ".html"))
 
     cnt = 0
-    # for j in events_matched:
-    #     print("===========================")
-    #     print(cnt)
-    #     cnt += 1
-    #     print("Top event")
-    #     print(es_list[j])
-    #     print("Side")
-    #     print(es_list_2[events_matched[j]])
 
     file_name = names[-1]
     outfile_top = open(file_name + "_top", 'wb')
