@@ -152,7 +152,6 @@ def getImage(d, f_dir_d):
 # Match same event for top and side views
 def event_match(es_list_a, es_list_b):
     event_matched = {}
-    visited = []
     # event_start_time = str(int(in_date_parts[1])) + str(int(in_date_parts[2])) + str(int(in_time_parts[0]))
     for i in range(len(es_list_a)):
         # event_start_time = str(es_list_a[i][0].day) + str(es_list_a[i][0].hour) + str(es_list_a[i][0].minute)
@@ -161,9 +160,8 @@ def event_match(es_list_a, es_list_b):
             event_b_start_time = str(es_list_b[j][0].day) + str(es_list_b[j][0].hour)
             if event_b_start_time == event_start_time:
                 # TODO: Determine the value here
-                if 3 <= abs(es_list_a[i][0].minute * 60 + es_list_a[i][0].second - es_list_b[j][0].minute * 60 - es_list_b[j][0].second) <= 6 and j not in visited:
+                if 1 <= abs(es_list_a[i][0].minute * 60 + es_list_a[i][0].second - es_list_b[j][0].minute * 60 - es_list_b[j][0].second) <= 6:
                     event_matched[i] = j
-                    visited.append(j)
 
     return event_matched
 
@@ -212,6 +210,7 @@ pollen_sheet.write('B1', 'Time')
 pollen_sheet.write('C1', 'Bee ID')
 
 final_pickle_file = {}
+duplicate = 0
 
 for i in range(65, sh.max_row + 1):
     pre_date = str(sh.cell(row=i, column=1).value)
@@ -348,14 +347,17 @@ for i in range(65, sh.max_row + 1):
         ################
         ################
         # TODO
-
+        # print(top_events[0])
+        # quit()
         if platform == "win32":
             names.append(str(top_events[0].split('\\')[5].split('_')[0]) + '-' +
                          str(top_events[0].split('\\')[5].split('_')[1]) + '.html')
+            count += 1
             names_flag = 1
         else:
             names.append(str(top_events[0].split('/')[5].split('_')[0]) + '-' +
                          str(top_events[0].split('/')[5].split('_')[1]) + '.html')
+            count += 1
             names_flag = 1
 
         if names_flag == 0:
@@ -370,30 +372,40 @@ for i in range(65, sh.max_row + 1):
             side_values.append(image[17:])
         # pickle_file_top[names[-1][:-5]] = top_values
         # pickle_file_side[names[-1][:-5]] = side_values
-        pickle_file_top[names[count][:-5]] = top_values
-        pickle_file_side[names[count][:-5]] = side_values
 
-        pickle_file["top"] = top_values
-        pickle_file["side"] = side_values
+        if count > 1 and names[count - 1][:-5] in final_pickle_file:
+            duplicate += 1
+            pickle_file_top[names[count - 1][:-5] + '_' + str(duplicate)] = top_values
+            pickle_file_side[names[count - 1][:-5] + '_' + str(duplicate)] = side_values
 
-        final_pickle_file[names[count][:-5]] = pickle_file
-        # final_pickle_file[names[-1][:-5]] = pickle_file
+            pickle_file["top"] = top_values
+            pickle_file["side"] = side_values
+
+            final_pickle_file[names[count - 1][:-5] + '_' + str(duplicate)] = pickle_file
+        else:
+            pickle_file_top[names[count - 1][:-5]] = top_values
+            pickle_file_side[names[count - 1][:-5]] = side_values
+
+            pickle_file["top"] = top_values
+            pickle_file["side"] = side_values
+
+            final_pickle_file[names[count - 1][:-5]] = pickle_file
 
         # Previous button
-        if count > 0:
-            res_list.append("<a href='file:" + str(count) + ".html")
+        if count > 1:
+            res_list.append("<a href='file:" + str(count - 1) + ".html")
             res_list.append("' class='previous'> &laquo Previous </a>")
         # Next button
         if i != 141 or len_count < len(events_matched) - 1:
-            res_list.append("<a href='file:" + str(count + 2) + ".html")
+            res_list.append("<a href='file:" + str(count + 1) + ".html")
             res_list.append("' class='next'>Next &raquo;</a>")
 
         len_count += 1
         # Record the title of each event
         res_list.append("<div class='event'>")
-        res_list.append("<p class='event_num'>Event " + names[count][: -5] + "</p>")
+        res_list.append("<p class='event_num'>Event " + names[count - 1][: -5] + "</p>")
 
-        count += 1
+        # count += 1
 
         res_list.append("<div class='area_block'>")
         # Deal with different OS
@@ -466,6 +478,8 @@ for i in range(65, sh.max_row + 1):
             GEN_HTML = str(count) + ".html" #names[-1]
         else:
             GEN_HTML = str(count) + ".html" #names[-1]
+
+        # count += 1
 
         # open html
         f = open(GEN_HTML, 'w', encoding="utf-8")
@@ -651,6 +665,11 @@ pollen_backup.close()
 outfile_a = open("all_events", 'wb')
 pickle.dump(final_pickle_file, outfile_a)
 outfile_a.close()
+
+print(len(final_pickle_file))
+print(final_pickle_file.keys())
+print(len(names))
+print(count)
 
 while 1:
     delete_or_not = input("Do you want to remove generated HTML files? (y/n): ")
