@@ -22,26 +22,34 @@ import xlsxwriter
 import openpyxl
 
 # Time difference for grouping images
-DELTA_T_SEC = 2
+DELTA_T_SEC = 0.15
 
 FMT_STR = '%Y-%m-%d_%H-%M-%S_%f'
-MIN_PIC = 4
+MIN_PIC = 3
 
 start_time = time.time()
 
 
 def tstr(fname):
     parts = fname.split('_')
-    return parts[0] + '_' + parts[1] + '_' + parts[2]
+    if parts[0][0] != '.':
+        return parts[0] + '_' + parts[1] + '_' + parts[2]
 
 
 def delta_dt_sec(dt1, dt2):
+    # time_dt1 = dt1.day * 24 * 60 * 60 + dt1.hour * 60 * 60 + dt1.minute * 60 + dt1.second + dt1.microsecond / 1000
+    # time_dt2 = dt2.day * 24 * 60 * 60 + dt2.hour * 60 * 60 + dt2.minute * 60 + dt2.second + dt2.microsecond / 1000
+    #
+    # return time_dt2 - time_dt1
     delta = dt2 - dt1
     return delta.days * 24 * 60 * 60 + delta.seconds + delta.microseconds / 1000000
+    #return delta.days * 24 * 60 * 60 + delta.hour * 60 * 60 + delta.minutes * 60 + delta.seconds + delta.microseconds / 1000000
 
 
 def get_events(DIR_REL):
     p = path.Path(DIR_REL)
+    for f in p.glob('.*'):
+        os.remove(f)
     dtimes = [dt.datetime.strptime(tstr(f.name), FMT_STR) for f in p.glob('*.jpg')]
     dtimes.sort()
     if len(dtimes) <= 2:
@@ -144,21 +152,20 @@ def getImage(d, f_dir_d):
 # Match same event for top and side views
 def event_match(es_list_a, es_list_b):
     event_matched = {}
-    visited = []
+    # visited = []
     # event_start_time = str(int(in_date_parts[1])) + str(int(in_date_parts[2])) + str(int(in_time_parts[0]))
     for i in range(len(es_list_a)):
-        event_start_time = str(es_list_a[i][0].day) + str(es_list_a[i][0].hour) + str(es_list_a[i][0].minute)
+        # event_start_time = str(es_list_a[i][0].day) + str(es_list_a[i][0].hour) + str(es_list_a[i][0].minute)
+        event_start_time = str(es_list_a[i][0].day) + str(es_list_a[i][0].hour)
         for j in range(len(es_list_b)):
-            event_b_start_time = str(es_list_b[j][0].day) + str(es_list_b[j][0].hour) + str(es_list_b[j][0].minute)
+            event_b_start_time = str(es_list_b[j][0].day) + str(es_list_b[j][0].hour)
             if event_b_start_time == event_start_time:
-                if abs(es_list_b[j][0].second - es_list_a[i][0].second) <= 2 and j not in visited:
-                    visited.append(j)
+                # TODO: Determine the value here
+                #
+                # if 3 <= abs(es_list_a[i][0].second - es_list_b[j][0].second) <= 4:  # and j not in visited:
+                if 3 <= abs(es_list_a[i][0].minute * 60 + es_list_a[i][0].second - es_list_b[j][0].minute * 60 - es_list_b[j][0].second) <= 4:
                     event_matched[i] = j
 
-    # if len(event_a) != len(event_b):
-    #     print('Some images of top/side view misses, only take the first satisfied event.')
-    #     event_a = [event_a[0]]
-    #     event_b = [event_b[0]]
     return event_matched
 
 
@@ -207,7 +214,7 @@ pollen_sheet.write('C1', 'Bee ID')
 
 final_pickle_file = {}
 
-for i in range(65, 142):#sh.max_row + 1):
+for i in range(65, sh.max_row + 1):
     pre_date = str(sh.cell(row=i, column=1).value)
     pre_time = str(sh.cell(row=i, column=2).value)
     bee_id = str(sh.cell(row=i, column=3).value)
@@ -260,7 +267,7 @@ for i in range(65, 142):#sh.max_row + 1):
                     if int(in_time_parts[0]) * 60 * 60 + int(in_time_parts[1]) * 60 + int(in_time_parts[2]) >= \
                             tmp_hour * 60 * 60 + tmp_minute * 60 + tmp_second > latest_time_top:
                         latest_time_top = tmp_hour * 60 * 60 + tmp_minute * 60 + tmp_second
-                        aim_file_top = f
+                        pre_aim_file_top = f
 
     for f in side_files:
         parts = f.split('_')
@@ -276,11 +283,14 @@ for i in range(65, 142):#sh.max_row + 1):
                     if int(in_time_parts[0]) * 60 * 60 + int(in_time_parts[1]) * 60 + int(in_time_parts[2]) >= \
                             tmp_hour * 60 * 60 + tmp_minute * 60 + tmp_second > latest_time_side:
                         latest_time_side = tmp_hour * 60 * 60 + tmp_minute * 60 + tmp_second
-                        aim_file_side = f
+                        pre_aim_file_side = f
+
+    # if in_date_parts[2] == "30" and in_time_parts[0] == "14" and in_time_parts[1] == "48":
+    #     print(str(pre_aim_file_top))
 
     try:
-        aim_file_top = '/Volumes/BEE_DATA/run_top-4___2021-09-26_18-00-44/' + str(aim_file_top) + '/'
-        aim_file_side = '/Volumes/BEE_DATA/run_side-4___2021-09-26_18-00-51/' + str(aim_file_side) + '/'
+        aim_file_top = '/Volumes/BEE_DATA/run_top-4___2021-09-26_18-00-44/' + str(pre_aim_file_top) + '/'
+        aim_file_side = '/Volumes/BEE_DATA/run_side-4___2021-09-26_18-00-51/' + str(pre_aim_file_side) + '/'
     except NameError:
         print('No data can be found with input date and time.')
         quit()
@@ -293,6 +303,9 @@ for i in range(65, 142):#sh.max_row + 1):
 
     es_list_2 = r3_side.get('events_list')
     nums_2 = r3_side.get('event_cnt')
+    #
+    # if in_date_parts[2] == "30" and in_time_parts[0] == "14" and in_time_parts[1] == "48":
+    #     print(es_list)
 
     events_matched = event_match(es_list, es_list_2)
 
@@ -329,6 +342,13 @@ for i in range(65, 142):#sh.max_row + 1):
         res_list = []
 
         names_flag = 0
+
+        # need to change name to marked event name instead of our event name
+        ################
+        ################
+        ################
+        ################
+        # TODO
 
         if platform == "win32":
             names.append(str(top_events[0].split('\\')[5].split('_')[0]) + '-' +
